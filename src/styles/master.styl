@@ -1,0 +1,30 @@
+@import "nib" // Nib mixins
+@import "jeet" // Grid system
+@import "rupture" // Media Queries
+global-reset() // Resets entire HTML Body
+//edit() // Show elements for debugging
+
+@import "./utils/colors.styl"
+@import "./utils/fonts.styl"
+
+html, body
+    height 100%
+    padding 0
+    margin 0
+
+body
+    background $secondary-background
+    // background-image src("~../assets/backgrounds/0.jpg")
+    font-family 'Source Code Pro', monospace
+    color $primary-text
+
+input, button, submit
+    box-sizing border-box
+    padding-left 2vw
+    border 0
+
+@import "./views/view-01.styl"
+@import "./views/view-02.styl"
+
+// @import './header.styl'
+// @import './footer.styl'
