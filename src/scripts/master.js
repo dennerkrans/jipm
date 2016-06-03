@@ -3,10 +3,18 @@ const $ = require('jquery');
 var change_bg = {
     current: 0,
     bg: [
-        'url(../assets/backgrounds/0.jpg)'
+        '/assets/backgrounds/Bild-1-final.jpg',
+        '/assets/backgrounds/Bild-2-final.jpg',
+        '/assets/backgrounds/Bild-3-final.jpg',
+        '/assets/backgrounds/Bild-4-final.jpg',
+        '/assets/backgrounds/Bild-5-final.jpg',
+        '/assets/backgrounds/Bild-6-final.jpg',
+        '/assets/backgrounds/Bild-7-final.jpg',
+        '/assets/backgrounds/Bild-8-final.jpg'
     ],
     shift: function(){
-        $('body').css('background-image', this.bg[this.current]);
+        // $('body').css('background-image', 'url(' + this.bg[this.current] + ')');
+        $('#background').attr('src', this.bg[this.current]);
         if (this.current === this.bg.length - 1) {
             this.current = 0;
         } else {
@@ -30,6 +38,62 @@ var shift_views = function(){
     }, 2000); //Time to print
 };
 
+//setting up the canvas
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+var x = canvas.width / 2;
+var y = canvas.height / 2;
+var xOffset = x/2;
+var yOffset = y/2;
+var maxWidth = 500;
+var lineHeight = 25;
+
+context.font = '26px Source Code Pro';
+context.textAlign = 'center';
+context.fillStyle = '#f7f7f7';
+
+//breaks text into lines and and puts center line as center
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    var words = text.split(' ');
+    var line = '';
+    var lines = [];
+
+    for(var n = 0; n < words.length; n++) {
+        var testLine = line + words[n] + ' ';
+        var metrics = context.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+        }
+        else {
+            line = testLine;
+        }
+    }
+    lines.push(line); //grabs the last line, could be better
+
+    var center = Math.floor(lines.length / 2);
+
+    for(var i = 0; i < lines.length; i++) {
+        context.fillText(lines[i], x, (y - (lineHeight*center)));
+        center = center - 1;
+    }
+}
+
+function print_canvas() {
+    var dataUrl = document.getElementById('myCanvas').toDataURL('image/bmp'); //attempt to save base64 string to server using this var
+    $.ajax({
+        type: 'POST',
+        url: './save_promise.php',
+        data: {data: dataUrl},
+        success: function(res) {
+            console.log(res);
+        }
+    });
+}
+
+var text = 'To see the world in a grain of sand, and a heaven in a wild flower. Hold infinity in the palm of your hand, and eternity in an hour.'
+
 //view 1 start
 $('#start-button').on('click touch', function(){
     $('.start').addClass('view-inactive');
@@ -48,4 +112,18 @@ $('#thesis-button').on('click touch', function(){
 });
 
 //view 3 promise
-$('#print-button').on('click touch', shift_views);
+$('#print-button').on('click touch', function(){
+    //things to print
+    context.drawImage(document.getElementById('background'), 0, 0);
+    wrapText(context, text, x-xOffset, y-yOffset, maxWidth, lineHeight); //top left
+    wrapText(context, text, x+xOffset, y-yOffset, maxWidth, lineHeight); //top right
+    wrapText(context, text, x+xOffset, y+yOffset, maxWidth, lineHeight); //bottom right
+    wrapText(context, text, x-xOffset, y+yOffset, maxWidth, lineHeight); //bottom left
+    shift_views();
+});
+// $('#print-button').on('click touch', print_canvas);
+
+//initial setup
+$(function(){
+    change_bg.shift();
+});
