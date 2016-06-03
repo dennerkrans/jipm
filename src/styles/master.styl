@@ -20,10 +20,14 @@ body
     width 105%
     position fixed
 
-input, button, submit
+input, button, submit, textarea
     box-sizing border-box
-    padding-left 2vw
+    padding 1vw 2vw
     border 0
+    box-shadow 0
+
+textarea:disabled
+    background $light-transparent
 
 .view-inactive
     display none

@@ -26,6 +26,10 @@ var change_bg = {
 var shift_views = function(){
     $('.promise').addClass('view-inactive');
     $('.printing').removeClass('view-inactive');
+    $('.promisetext').val('').prop('disabled', false);
+    if($('.choosen').length > 0) {
+        $('.choosen').removeClass('choosen');
+    }
     setTimeout(function() {
         $('.printing').addClass('view-inactive');
         $('.thankyou').removeClass('view-inactive');
@@ -51,6 +55,39 @@ var lineHeight = 25;
 context.font = '26px Source Code Pro';
 context.textAlign = 'center';
 context.fillStyle = '#f7f7f7';
+
+function promise_counter() {
+    if($('.choosen').length >= 2) {
+        $('.promisetext').prop('disabled', true);
+        return false
+    } else if ($('.choosen').length >= 1 && $('#prom1').val().length > 0) {
+        $('#prom2').prop('disabled', true);
+        return false
+    } else if ($('.choosen').length >= 1 && $('#prom2').val().length > 0) {
+        $('#prom1').prop('disabled', true);
+        return false
+    } else if ($('#prom1').val().length > 0 && $('#prom2').val().length > 0) {
+        return false
+    } else {
+        $('.promisetext').prop('disabled', false);
+        return true
+    }
+}
+
+function promise_to_canvas() {
+    var promises = [];
+    $('.promisetext').each(function(){
+        if($(this).val().length > 0)
+            promises.push($(this).val());
+    });
+    if($('.choosen').length > 0){
+        console.log('here');
+        $('.choosen').each(function(){
+            promises.push($(this).first().text());
+        });
+    }
+    return promises;
+}
 
 //breaks text into lines and and puts center line as center
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -80,19 +117,26 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
     }
 }
 
+function canvas_magic(prom1, prom2) {
+    //things to print
+    context.drawImage(document.getElementById('background'), 0, 0);
+    wrapText(context, prom1, x-xOffset, y-yOffset, maxWidth, lineHeight); //top left
+    wrapText(context, prom2, x+xOffset, y-yOffset, maxWidth, lineHeight); //top right
+    wrapText(context, prom2, x+xOffset, y+yOffset, maxWidth, lineHeight); //bottom right
+    wrapText(context, prom1, x-xOffset, y+yOffset, maxWidth, lineHeight); //bottom left
+}
+
 function print_canvas() {
     var dataUrl = document.getElementById('myCanvas').toDataURL('image/bmp'); //attempt to save base64 string to server using this var
     $.ajax({
         type: 'POST',
-        url: './save_promise.php',
+        url: 'save_promise.php',
         data: {data: dataUrl},
         success: function(res) {
             console.log(res);
         }
     });
 }
-
-var text = 'To see the world in a grain of sand, and a heaven in a wild flower. Hold infinity in the palm of your hand, and eternity in an hour.'
 
 //view 1 start
 $('#start-button').on('click touch', function(){
@@ -112,16 +156,30 @@ $('#thesis-button').on('click touch', function(){
 });
 
 //view 3 promise
+$('.promisetext').on('keyup', function(){
+    promise_counter();
+    if(!promise_counter())
+        $('.footer-print').addClass('footer-active');
+});
+
+$('.feed-promise').on('click touch', function(){
+    if($(this).hasClass('choosen')) {
+        $(this).removeClass('choosen');
+    } else {
+        if(promise_counter()) {
+            $(this).addClass('choosen');
+        }
+    }
+    if(!promise_counter())
+        $('.footer-print').addClass('footer-active');
+});
+
 $('#print-button').on('click touch', function(){
-    //things to print
-    context.drawImage(document.getElementById('background'), 0, 0);
-    wrapText(context, text, x-xOffset, y-yOffset, maxWidth, lineHeight); //top left
-    wrapText(context, text, x+xOffset, y-yOffset, maxWidth, lineHeight); //top right
-    wrapText(context, text, x+xOffset, y+yOffset, maxWidth, lineHeight); //bottom right
-    wrapText(context, text, x-xOffset, y+yOffset, maxWidth, lineHeight); //bottom left
+    var promises = promise_to_canvas();
+    canvas_magic(promises[0], promises[1]);
+    print_canvas();
     shift_views();
 });
-// $('#print-button').on('click touch', print_canvas);
 
 //initial setup
 $(function(){

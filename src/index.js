@@ -5,6 +5,5 @@ const app = require('./jade/app.jade')();
 $(function(){
     $('body').html(app);
     // require(someJavascript)();
-    require('./scripts/canvas.js');
     require('./scripts/master.js');
 });
